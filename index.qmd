@@ -1,6 +1,6 @@
 ---
 title: "Predicting Survival Outcomes Using Logistic Regression"
-subtitle: "Summarizing Two Articles"
+#subtitle: "Summarizing Two Articles"
 author: "Yafet Mekonnen (Advisor: Dr. Cohen)"
 date: today
 format:
@@ -20,10 +20,15 @@ editor:
 ---
 
 
-## Summary 
+## Introduction 
 
-   The article [@shipe2019developing] explains how logistic regression is used to predict health outcomes by analyzing different patient groups and their results. It highlights the importance of collecting clean data, properly handling missing values, and choosing the best predictors for training the model. The article also describes how to evaluate how well the model works and how accurate its predictions are. To ensure the model performs reliably, it is tested on new patient data outside the original group. Overall, the model can help doctors make better decisions and improve patient care. 
-   
-   This second article [@joshi2021predicting] is also another health related study where now logistic regression is used to predict type two diabetes. The process is the same as the first article where they data was cleaned and handled the missing data and find the important predictors to use to create the model. I believe the most important predictors were BMI, Age of the patients and family history. The accurate of the model was checked and was also tested with the test dataset to make sure it worked as intended. The main purpose of this study was to help identify people at high risk for diabetes and support doctors in making better prevention and treatment decisions.
+  Surviving or not, sick or cured many real life outcomes come down to a simple binary choice of “yes” or “no.” Logistic regression is one of the most common tools for predicting these kinds of outcomes. It can estimate who might survive an illness, who may be at risk for heart problems, or who is likely to develop diabetes. Researchers such as [@wang2024exploring], who analyzed heart disease risk, and [@joshi2021predicting] , who predicted type 2 diabetes, both show how powerful logistic regression can be when trying to understand which factors increase the chances of an event happening. Because it is a supervised learning method, logistic regression uses labeled data to learn patterns and predict the probability of an outcome making it a perfect approach for studying survival outcomes.
+  
+  Logistic regression will be used to examine which passenger features were most strongly linked to surviving one of the most tragic events in history, the sinking of the Titanic. Like any other machine learning model, the dataset must first be cleaned, missing values must be addressed, and meaningful predictors must be selected before any analysis can be done. As discussed in [@shipe2019developing], using clean data, properly handling missing information, and choosing the right predictors are essential steps for building a dependable model. After the Titanic dataset is fully prepared, the logistic regression model will evaluate relationships between passenger characteristics such as age, sex, ticket class, fare, and their overall chances of survival.
+  
+  The main goal of this paper is to build a model that predicts passenger survival in the Titanic shipwreck using logistic regression. This project will also focus on identifying which features are most important for making accurate predictions. Overall, the analysis will show how logistic regression can turn real life data into meaningful insights and help answer real world questions about why some passengers survived while others did not.
+  
+Disclaimer: Microsoft Copilot was used to assist with grammar while writing this introduction.
+
 
 
