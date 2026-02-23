@@ -28,5 +28,233 @@ Similar to other machine learning models, logistic regression requires the data 
 
 The main goal of this project is to build a logistic regression model that predicts a patient’s likelihood of developing heart disease using the Framingham Heart Study dataset. By identifying which features have the strongest correlation with the target outcome, the model can highlight risk patterns that support early prevention and clinical decision making. As mentioned [@tripepi2008linear] describe, logistic regression is specifically designed for binary medical outcomes, such as whether a patient does or does not develop a disease, and their example involving chronic kidney disease demonstrates how the method estimates risk by comparing differences across patient groups. In a similar way, this project examines how factors such as sex, age, BMI, smoking status, cholesterol levels, and other clinical indicators contribute to the probability of heart disease occurrence. The dataset used in this study is publicly available on Kaggle and originates from the long running Framingham Heart Study, which includes over 4,000 patient records and 15 demographic, behavioral, and medical attributes used to predict a patient’s 10 year risk of coronary heart disease (CHD). Additionally, the findings from [@wang2024exploring] show that logistic regression can effectively identify key predictors of cardiovascular outcomes, reinforcing its use for this type of analysis. Overall, this project demonstrates how logistic regression can transform real world patient data into meaningful insights that help explain why some individuals face a higher risk of heart disease than others
 
-Disclaimer: Microsoft Copilot was used to assist with grammar 
+
+### Data Exploration and Visualization
+
+
+
+The dataset used for this project is publicly available on Kaggle and originates from Framingham Heart Study, a large cardiovascular research project involving residents of Framingham, Massachusetts. The study followed participants over a 10 year period and recorded whether each individual eventually developed coronary heart disease (CHD). The dataset contains a little over 4,000 patient records and 15 attributes that capture a range of demographic, behavioral, and medical characteristics. Each feature represents a potential risk factor, allowing the model to analyze how different aspects of a patient’s health profile relate to the long term development of heart disease.
+
+
+
+```{r}
+library(readr)
+library(dplyr)
+library(gt)
+
+df <- read_csv("framingham.csv",show_col_types = FALSE)
+
+
+variables <- colnames(df)
+
+
+table <- data.frame(
+  Variable = variables,
+  Description = c(
+    "Sex of the participant, (1 = male, 0 = female).",
+    "Age of the participant.",
+    "Education level (1 = some high school, 2 = high school graduate or GED, 3 = some college, 4 = college graduate).",
+    "Indicates whether or not the patient is a current smoker.",
+    "Average number of cigarettes smoked per day.",
+    "Whether the participant is taking medication for blood pressure.",
+    "Whether the participant has ever experienced a stroke.",
+    " whether or not the patient was hypertensive.",
+    "Whether the participant has been diagnosed with diabetes.",
+    "Cholesterol level of the participant.",
+    "Systolic blood pressure.",
+    "Diastolic blood pressure.",
+    "Body Mass Index (BMI).",
+    "Heart rate of the participant.",
+    "Glucose level.",
+    "Outcome variable indicating whether the participant developed coronary heart disease (CHD) within 10 years (1 = Yes, 0 = No)."
+  )
+)
+
+table %>%
+  gt() %>%
+  tab_header(
+    title = "Table: Description of Variables in the Framingham Heart Study Dataset"
+  ) 
+```
+
+
+```{python}
+import pandas as pd
+import seaborn as sns        
+import matplotlib.pyplot as plt  
+import numpy as np
+
+df = pd.read_csv("framingham.csv")
+
+
+counts = df['TenYearCHD'].value_counts().sort_index()
+
+ax = sns.barplot(x=counts.index, y=counts.values, palette='Purples')
+
+plt.title("Count of Ten Year Heart Disease Outcomes")
+plt.xlabel("TenYearCHD (0 = No, 1 = Yes)")
+plt.ylabel("Count")
+
+
+plt.show()
+
+
+```
+
+
+
+```{python}
+
+df["BPMeds"] = pd.to_numeric(df["BPMeds"], errors="coerce")
+df = df.dropna(subset=["BPMeds"]).copy()
+df["BPMeds"] = df["BPMeds"].astype(int)
+
+
+df['sex'] = df['male'].astype(int)
+
+df['sex_label'] = df['sex'].map({1: 'Male', 0: 'Female'})
+
+
+binary_features = ["sex", "currentSmoker", "BPMeds", "prevalentStroke", "prevalentHyp", "diabetes"]  
+target = "TenYearCHD" 
+
+subplot_titles = {
+    "sex": "Sex",
+    "currentSmoker": "Current Smoker",
+    "BPMeds": "Blood Pressure Meds",
+    "prevalentStroke": "Prevalent Stroke",
+    "prevalentHyp": "Prevalent Hypertension",
+    "diabetes": "Diabetes"
+}
+
+label_map = {
+    "sex": {0: "Female", 1: "Male"},     
+    "default": {0: "No", 1: "Yes"}        
+}
+
+df[target] = pd.to_numeric(df[target], errors='coerce').astype('Int64')
+
+sns.set_theme(style="whitegrid", context="talk")  
+
+fig, axes = plt.subplots(2, 3, figsize=(16, 12))
+axes = axes.flatten()  
+
+for ax, col in zip(axes, binary_features):
+    sub = df[[col, target]].dropna(subset=[col, target]).copy()
+    
+    x_order = [0, 1]
+    hue_order = [0, 1]
+
+    sns.countplot(
+        data=sub, x=col, hue=target, ax=ax,
+        order=x_order, hue_order=hue_order, palette='Blues'
+    )
+
+    ax.set_title(subplot_titles.get(col, col), fontsize=16)
+
+    if col == "sex":
+        ax.set_xticks([0, 1], labels=[label_map["sex"][0], label_map["sex"][1]])
+    else:
+        ax.set_xticks([0, 1], labels=[label_map["default"][0], label_map["default"][1]])
+
+    ax.set_xlabel("")          
+    ax.set_ylabel("Count")     
+
+    heights = [p.get_height() for p in ax.patches if p.get_height() is not None]
+    max_h = max(heights) if heights else 1
+    y_off = 0.03 * max_h  
+    for p in ax.patches:
+        h = p.get_height()
+        if h is None or h <= 0:
+            continue  
+        x = p.get_x() + p.get_width() / 2
+        ax.text(x, h + y_off, f"{int(h)}", ha="center", va="bottom", fontsize=12)
+
+
+for i, ax in enumerate(axes):
+    leg = ax.legend(title=target, loc='upper right', fontsize=20, title_fontsize=20)
+    if i != len(binary_features) - 1 and leg is not None:
+        ax.legend_.remove()
+
+fig.suptitle("Count of Ten Year Heart Disease Outcomes for binary features", fontsize=30, y=1)
+plt.tight_layout()
+plt.show()
+
+```
+```{python}
+
+
+continuous_features = [
+    "age", "education", "cigsPerDay", "totChol", "sysBP",
+    "diaBP", "BMI", "heartRate", "glucose"
+]
+target = "TenYearCHD"
+
+subplot_titles = {
+    "age": "Age (years)",
+    "education": "Education (1–4 levels)",
+    "cigsPerDay": "Cigarettes per Day",
+    "totChol": "Total Cholesterol (mg/dL)",
+    "sysBP": "Systolic Blood Pressure (mmHg)",
+    "diaBP": "Diastolic Blood Pressure (mmHg)",
+    "BMI": "Body Mass Index (kg/m²)",
+    "heartRate": "Resting Heart Rate (bpm)",
+    "glucose": "Glucose (mg/dL)"
+}
+
+df[target] = pd.to_numeric(df[target], errors="coerce").astype("Int64")
+
+sns.set_theme(style="whitegrid", context="talk")
+
+ncols = 3
+nrows = int(np.ceil(len(continuous_features) / ncols))
+fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 12))
+axes = axes.flatten()
+
+last_plot_index = len(continuous_features) - 1
+
+for i, (ax, col) in enumerate(zip(axes, continuous_features)):
+    sub = df[[col, target]].dropna(subset=[col, target]).copy()
+
+    if sub.empty:
+        ax.text(0.5, 0.5, f"No data for '{col}'", ha="center", va="center", fontsize=12)
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xlabel(""); ax.set_ylabel("")
+        continue
+
+    g = sns.histplot(
+        data=sub,
+        x=col,
+        hue=target,
+        bins="auto",
+        kde=False,
+        multiple="layer", 
+        palette="Reds",
+        alpha=0.6,
+        edgecolor="white",
+        ax=ax
+    )
+
+    ax.set_xlabel(subplot_titles.get(col, col), fontsize=12)
+    ax.set_ylabel("Count", fontsize=12)
+    ax.tick_params(axis="both", labelsize=11)
+
+    leg = ax.legend_
+    if i != last_plot_index and leg is not None:
+        ax.legend_.remove()
+
+for j in range(len(continuous_features), nrows * ncols):
+    axes[j].axis("off")
+
+fig.suptitle("Count of Ten Year Heart Disease Outcomes for Continuous Features", fontsize=30, y=1)
+
+plt.tight_layout()
+plt.show()
+
+```
+
+
+
+
+
 
