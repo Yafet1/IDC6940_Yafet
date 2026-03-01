@@ -29,6 +29,34 @@ Similar to other machine learning models, logistic regression requires the data 
 The main goal of this project is to build a logistic regression model that predicts a patient’s likelihood of developing heart disease using the Framingham Heart Study dataset. By identifying which features have the strongest correlation with the target outcome, the model can highlight risk patterns that support early prevention and clinical decision making. As mentioned [@tripepi2008linear] describe, logistic regression is specifically designed for binary medical outcomes, such as whether a patient does or does not develop a disease, and their example involving chronic kidney disease demonstrates how the method estimates risk by comparing differences across patient groups. In a similar way, this project examines how factors such as sex, age, BMI, smoking status, cholesterol levels, and other clinical indicators contribute to the probability of heart disease occurrence. The dataset used in this study is publicly available on Kaggle and originates from the long running Framingham Heart Study, which includes over 4,000 patient records and 15 demographic, behavioral, and medical attributes used to predict a patient’s 10 year risk of coronary heart disease (CHD). Additionally, the findings from [@wang2024exploring] show that logistic regression can effectively identify key predictors of cardiovascular outcomes, reinforcing its use for this type of analysis. Overall, this project demonstrates how logistic regression can transform real world patient data into meaningful insights that help explain why some individuals face a higher risk of heart disease than others
 
 
+
+## Methods
+
+The model that is going to be applied is the supervised machine learning method called Logistic Regression to predict a binary outcome (0 or 1), since it is appropriate when the target variable has only two possible values.
+The linear form of the model is written as:$y_i = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_k X_k$  since the outcome is binary, logistic regression uses the log-odds (logit) to transform the function written as 
+
+$\log\left(\frac{p}{1 - p}\right) = \beta_0 + \beta_1 X_1 + \dots + \beta_k X_k$
+
+Where:
+
+- $p$ is the probability that the event occurs
+
+- $\beta_0$ is the intercept
+
+- $\beta_1, \dots, \beta_k$ are coefficients
+
+- $X_1, \dots, X_k$ are predictor variables
+
+
+
+A logistic regression model requires multiple steps to achieve the best performance. First, the data must be cleaned, and any missing values should be handled typically by replacing them with zero,mean or median. After pre processing, the data is split into training (80%) and testing (20%) subsets. The model is then trained using the training data and later used to predict outcomes on the testing data to evaluate its performance.
+
+
+Model performance is evaluated using standard classification metrics. Accuracy is calculated as $Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$, precision is calculated as $Precision = \frac{TP}{TP + FP}$, recall is calculated as $Recall = \frac{TP}{TP + FN}$, and the F1 score is calculated as $F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}$. A confusion matrix is used to compare predicted and actual outcomes.The ROC curve and AUC score help measure how good the model is at correctly separating the two groups.
+
+
+
+
 ### Data Exploration and Visualization
 
 
@@ -89,13 +117,21 @@ df = pd.read_csv("framingham.csv")
 
 counts = df['TenYearCHD'].value_counts().sort_index()
 
-ax = sns.barplot(x=counts.index, y=counts.values, palette='Purples')
 
-plt.title("Count of Ten Year Heart Disease Outcomes")
-plt.xlabel("TenYearCHD (0 = No, 1 = Yes)")
-plt.ylabel("Count")
+total = counts.sum()
+labels = ["No (0)", "Yes (1)"]
 
+pct = counts / total * 100
+labels_with_values = [f"{l}\n{c} ({p:.1f}%)" for l, c, p in zip(labels, counts, pct)]
 
+plt.pie(
+    counts.values,
+    labels=labels_with_values,
+    startangle=90,
+    colors=sns.color_palette("Reds")
+);
+plt.title("Ten Year Heart Disease Outcomes")
+plt.tight_layout()
 plt.show()
 
 
@@ -181,6 +217,8 @@ plt.tight_layout()
 plt.show()
 
 ```
+
+
 ```{python}
 
 
@@ -229,7 +267,7 @@ for i, (ax, col) in enumerate(zip(axes, continuous_features)):
         bins="auto",
         kde=False,
         multiple="layer", 
-        palette="Reds",
+        palette="Purples",
         alpha=0.6,
         edgecolor="white",
         ax=ax
@@ -252,6 +290,10 @@ plt.tight_layout()
 plt.show()
 
 ```
+
+
+
+
 
 
 
