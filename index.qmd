@@ -49,19 +49,20 @@ Where:
 
 
 
-A logistic regression model requires multiple steps to achieve the best performance. First, the data must be cleaned, and any missing values should be handled typically by replacing them with zero,mean or median. After pre processing, the data is split into training (80%) and testing (20%) subsets. The model is then trained using the training data and later used to predict outcomes on the testing data to evaluate its performance.
+A logistic regression model requires multiple steps to achieve the best performance. First, the data must be cleaned, and any missing values should be handled typically by replacing them with zero,mean or median. After pre processing,the model is then trained using the training data and later used to predict outcomes on the testing data to evaluate its performance.
 
 
 Model performance is evaluated using standard classification metrics. Accuracy is calculated as $Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$, precision is calculated as $Precision = \frac{TP}{TP + FP}$, recall is calculated as $Recall = \frac{TP}{TP + FN}$, and the F1 score is calculated as $F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}$. A confusion matrix is used to compare predicted and actual outcomes.The ROC curve and AUC score help measure how good the model is at correctly separating the two groups.
 
 
+## Analysis and Results
 
 
 ### Data Exploration and Visualization
 
 
 
-The dataset used for this project is publicly available on Kaggle and originates from Framingham Heart Study, a large cardiovascular research project involving residents of Framingham, Massachusetts. The study followed participants over a 10 year period and recorded whether each individual eventually developed coronary heart disease (CHD). The dataset contains a little over 4,000 patient records and 15 attributes that capture a range of demographic, behavioral, and medical characteristics. Each feature represents a potential risk factor, allowing the model to analyze how different aspects of a patient’s health profile relate to the long term development of heart disease.
+The dataset used for this project is publicly available on Kaggle and originates from [@FraminghamHeartStudy], a large cardiovascular research project involving residents of Framingham, Massachusetts. The study followed participants over a 10 year period between 1958 to 1968 and recorded whether each individual eventually developed coronary heart disease (CHD). The dataset contains a little over 4,000 patient records and 15 attributes that capture a range of demographic, behavioral, and medical characteristics. Each feature represents a potential risk factor, allowing the model to analyze how different aspects of a patient’s health profile relate to the long term development of heart disease.
 
 
 
@@ -137,6 +138,7 @@ plt.show()
 
 ```
 
+The above pie chart indicate that shows how many people developed heart disease over ten years. Most people did not get heart disease 3,594 people, which is 84.8% of the group. A smaller number 644 people, or 15.2% did develop heart disease. Overall, the chart tells us that only a small part of the group ended up with heart disease during the ten‑year period.
 
 
 ```{python}
@@ -218,6 +220,7 @@ plt.show()
 
 ```
 
+The chart above compares different yes‑or‑no health features with ten‑year heart disease outcomes. In all six groups (sex, smoking, blood‑pressure medicine, stroke, hypertension, and diabetes), most people did not get heart disease. The lighter bars show people without heart disease, and these bars are much taller in every category. The darker bars show people who did get heart disease, and these bars are smaller in every group. This means that, no matter which feature you look at, only a small number of people ended up with heart disease over ten years.
 
 ```{python}
 
@@ -292,7 +295,7 @@ plt.show()
 ```
 
 
-
+The chart above shows different health measurements and how many people with each measurement did or did not get heart disease in ten years. For every feature like age, blood pressure, heart rate, cholesterol, BMI, and glucose there are many more people who did not get heart disease than people who did. It is shown that the light purple bars for people without heart disease are much taller than the dark purple bars for people with heart disease. This tells us that heart disease cases are fewer across all these measurements.Overall, the chart shows that heart disease is less common in the dataset, no matter which feature you look at.
 
 
 

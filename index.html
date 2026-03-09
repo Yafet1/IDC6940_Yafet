@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Yafet Mekonnen (Advisor: Dr. Cohen)">
-<meta name="dcterms.date" content="2026-03-01">
+<meta name="dcterms.date" content="2026-03-09">
 
 <title>Predicting Survival Outcomes Using Logistic Regression</title>
 <style>
@@ -3262,7 +3262,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <p class="date">March 9, 2026</p>
     </div>
   </div>
   
@@ -3291,11 +3291,14 @@ window.Quarto = {
 <li><p><span class="math inline">\(\beta_1, \dots, \beta_k\)</span> are coefficients</p></li>
 <li><p><span class="math inline">\(X_1, \dots, X_k\)</span> are predictor variables</p></li>
 </ul>
-<p>A logistic regression model requires multiple steps to achieve the best performance. First, the data must be cleaned, and any missing values should be handled typically by replacing them with zero,mean or median. After pre processing, the data is split into training (80%) and testing (20%) subsets. The model is then trained using the training data and later used to predict outcomes on the testing data to evaluate its performance.</p>
+<p>A logistic regression model requires multiple steps to achieve the best performance. First, the data must be cleaned, and any missing values should be handled typically by replacing them with zero,mean or median. After pre processing,the model is then trained using the training data and later used to predict outcomes on the testing data to evaluate its performance.</p>
 <p>Model performance is evaluated using standard classification metrics. Accuracy is calculated as <span class="math inline">\(Accuracy = \frac{TP + TN}{TP + TN + FP + FN}\)</span>, precision is calculated as <span class="math inline">\(Precision = \frac{TP}{TP + FP}\)</span>, recall is calculated as <span class="math inline">\(Recall = \frac{TP}{TP + FN}\)</span>, and the F1 score is calculated as <span class="math inline">\(F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}\)</span>. A confusion matrix is used to compare predicted and actual outcomes.The ROC curve and AUC score help measure how good the model is at correctly separating the two groups.</p>
+</section>
+<section id="analysis-and-results" class="level2">
+<h2 class="anchored" data-anchor-id="analysis-and-results">Analysis and Results</h2>
 <section id="data-exploration-and-visualization" class="level3">
 <h3 class="anchored" data-anchor-id="data-exploration-and-visualization">Data Exploration and Visualization</h3>
-<p>The dataset used for this project is publicly available on Kaggle and originates from Framingham Heart Study, a large cardiovascular research project involving residents of Framingham, Massachusetts. The study followed participants over a 10 year period and recorded whether each individual eventually developed coronary heart disease (CHD). The dataset contains a little over 4,000 patient records and 15 attributes that capture a range of demographic, behavioral, and medical characteristics. Each feature represents a potential risk factor, allowing the model to analyze how different aspects of a patient’s health profile relate to the long term development of heart disease.</p>
+<p>The dataset used for this project is publicly available on Kaggle and originates from <span class="citation" data-cites="FraminghamHeartStudy">(<a href="#ref-FraminghamHeartStudy" role="doc-biblioref">FraminghamHeartStudy</a>)</span>, a large cardiovascular research project involving residents of Framingham, Massachusetts. The study followed participants over a 10 year period between 1958 to 1968 and recorded whether each individual eventually developed coronary heart disease (CHD). The dataset contains a little over 4,000 patient records and 15 attributes that capture a range of demographic, behavioral, and medical characteristics. Each feature represents a potential risk factor, allowing the model to analyze how different aspects of a patient’s health profile relate to the long term development of heart disease.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -3338,20 +3341,20 @@ window.Quarto = {
 <span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  ) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="evvwvwirgp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#evvwvwirgp table {
+<div id="cdtuvdnsuf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#cdtuvdnsuf table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#evvwvwirgp thead, #evvwvwirgp tbody, #evvwvwirgp tfoot, #evvwvwirgp tr, #evvwvwirgp td, #evvwvwirgp th {
+#cdtuvdnsuf thead, #cdtuvdnsuf tbody, #cdtuvdnsuf tfoot, #cdtuvdnsuf tr, #cdtuvdnsuf td, #cdtuvdnsuf th {
 border-style: none;
 }
-#evvwvwirgp p {
+#cdtuvdnsuf p {
 margin: 0;
 padding: 0;
 }
-#evvwvwirgp .gt_table {
+#cdtuvdnsuf .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -3376,11 +3379,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#evvwvwirgp .gt_caption {
+#cdtuvdnsuf .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#evvwvwirgp .gt_title {
+#cdtuvdnsuf .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -3391,7 +3394,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#evvwvwirgp .gt_subtitle {
+#cdtuvdnsuf .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -3402,7 +3405,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#evvwvwirgp .gt_heading {
+#cdtuvdnsuf .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -3413,12 +3416,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#evvwvwirgp .gt_bottom_border {
+#cdtuvdnsuf .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#evvwvwirgp .gt_col_headings {
+#cdtuvdnsuf .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -3432,7 +3435,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#evvwvwirgp .gt_col_heading {
+#cdtuvdnsuf .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3451,7 +3454,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#evvwvwirgp .gt_column_spanner_outer {
+#cdtuvdnsuf .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3462,13 +3465,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#evvwvwirgp .gt_column_spanner_outer:first-child {
+#cdtuvdnsuf .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#evvwvwirgp .gt_column_spanner_outer:last-child {
+#cdtuvdnsuf .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#evvwvwirgp .gt_column_spanner {
+#cdtuvdnsuf .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -3479,10 +3482,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#evvwvwirgp .gt_spanner_row {
+#cdtuvdnsuf .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#evvwvwirgp .gt_group_heading {
+#cdtuvdnsuf .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3507,7 +3510,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#evvwvwirgp .gt_empty_group_heading {
+#cdtuvdnsuf .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -3521,13 +3524,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#evvwvwirgp .gt_from_md > :first-child {
+#cdtuvdnsuf .gt_from_md > :first-child {
 margin-top: 0;
 }
-#evvwvwirgp .gt_from_md > :last-child {
+#cdtuvdnsuf .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#evvwvwirgp .gt_row {
+#cdtuvdnsuf .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3545,7 +3548,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#evvwvwirgp .gt_stub {
+#cdtuvdnsuf .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3557,7 +3560,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#evvwvwirgp .gt_stub_row_group {
+#cdtuvdnsuf .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3570,13 +3573,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#evvwvwirgp .gt_row_group_first td {
+#cdtuvdnsuf .gt_row_group_first td {
 border-top-width: 2px;
 }
-#evvwvwirgp .gt_row_group_first th {
+#cdtuvdnsuf .gt_row_group_first th {
 border-top-width: 2px;
 }
-#evvwvwirgp .gt_summary_row {
+#cdtuvdnsuf .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -3585,14 +3588,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#evvwvwirgp .gt_first_summary_row {
+#cdtuvdnsuf .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#evvwvwirgp .gt_first_summary_row.thick {
+#cdtuvdnsuf .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#evvwvwirgp .gt_last_summary_row {
+#cdtuvdnsuf .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3601,7 +3604,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#evvwvwirgp .gt_grand_summary_row {
+#cdtuvdnsuf .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -3610,7 +3613,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#evvwvwirgp .gt_first_grand_summary_row {
+#cdtuvdnsuf .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3619,7 +3622,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#evvwvwirgp .gt_last_grand_summary_row_top {
+#cdtuvdnsuf .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -3628,10 +3631,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#evvwvwirgp .gt_striped {
+#cdtuvdnsuf .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#evvwvwirgp .gt_table_body {
+#cdtuvdnsuf .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -3639,7 +3642,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#evvwvwirgp .gt_footnotes {
+#cdtuvdnsuf .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -3652,7 +3655,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#evvwvwirgp .gt_footnote {
+#cdtuvdnsuf .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -3660,7 +3663,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#evvwvwirgp .gt_sourcenotes {
+#cdtuvdnsuf .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -3673,64 +3676,64 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#evvwvwirgp .gt_sourcenote {
+#cdtuvdnsuf .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#evvwvwirgp .gt_left {
+#cdtuvdnsuf .gt_left {
 text-align: left;
 }
-#evvwvwirgp .gt_center {
+#cdtuvdnsuf .gt_center {
 text-align: center;
 }
-#evvwvwirgp .gt_right {
+#cdtuvdnsuf .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#evvwvwirgp .gt_font_normal {
+#cdtuvdnsuf .gt_font_normal {
 font-weight: normal;
 }
-#evvwvwirgp .gt_font_bold {
+#cdtuvdnsuf .gt_font_bold {
 font-weight: bold;
 }
-#evvwvwirgp .gt_font_italic {
+#cdtuvdnsuf .gt_font_italic {
 font-style: italic;
 }
-#evvwvwirgp .gt_super {
+#cdtuvdnsuf .gt_super {
 font-size: 65%;
 }
-#evvwvwirgp .gt_footnote_marks {
+#cdtuvdnsuf .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#evvwvwirgp .gt_asterisk {
+#cdtuvdnsuf .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#evvwvwirgp .gt_indent_1 {
+#cdtuvdnsuf .gt_indent_1 {
 text-indent: 5px;
 }
-#evvwvwirgp .gt_indent_2 {
+#cdtuvdnsuf .gt_indent_2 {
 text-indent: 10px;
 }
-#evvwvwirgp .gt_indent_3 {
+#cdtuvdnsuf .gt_indent_3 {
 text-indent: 15px;
 }
-#evvwvwirgp .gt_indent_4 {
+#cdtuvdnsuf .gt_indent_4 {
 text-indent: 20px;
 }
-#evvwvwirgp .gt_indent_5 {
+#cdtuvdnsuf .gt_indent_5 {
 text-indent: 25px;
 }
-#evvwvwirgp .katex-display {
+#cdtuvdnsuf .katex-display {
 display: inline-flex !important;
 margin-bottom: 0.75em !important;
 }
-#evvwvwirgp div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#cdtuvdnsuf div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
 height: 0px !important;
 }
 </style>
@@ -3854,6 +3857,7 @@ height: 0px !important;
 </div>
 </div>
 </div>
+<p>The above pie chart indicate that shows how many people developed heart disease over ten years. Most people did not get heart disease 3,594 people, which is 84.8% of the group. A smaller number 644 people, or 15.2% did develop heart disease. Overall, the chart tells us that only a small part of the group ended up with heart disease during the ten‑year period.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -3940,6 +3944,7 @@ height: 0px !important;
 </div>
 </div>
 </div>
+<p>The chart above compares different yes‑or‑no health features with ten‑year heart disease outcomes. In all six groups (sex, smoking, blood‑pressure medicine, stroke, hypertension, and diabetes), most people did not get heart disease. The lighter bars show people without heart disease, and these bars are much taller in every category. The darker bars show people who did get heart disease, and these bars are smaller in every group. This means that, no matter which feature you look at, only a small number of people ended up with heart disease over ten years.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -4018,6 +4023,7 @@ height: 0px !important;
 </div>
 </div>
 </div>
+<p>The chart above shows different health measurements and how many people with each measurement did or did not get heart disease in ten years. For every feature like age, blood pressure, heart rate, cholesterol, BMI, and glucose there are many more people who did not get heart disease than people who did. It is shown that the light purple bars for people without heart disease are much taller than the dark purple bars for people with heart disease. This tells us that heart disease cases are fewer across all these measurements.Overall, the chart shows that heart disease is less common in the dataset, no matter which feature you look at.</p>
 
 </section>
 </section>
@@ -4028,6 +4034,9 @@ Bewick, Viv, Liz Cheek, and Jonathan Ball. 2005. <span>“Statistics Review 14: 
 </div>
 <div id="ref-dayton1992logistic" class="csl-entry" role="listitem">
 Dayton, C Mitchell. 1992. <span>“Logistic Regression Analysis.”</span> <em>Stat</em> 474: 574.
+</div>
+<div id="ref-FraminghamHeartStudy" class="csl-entry" role="listitem">
+FraminghamHeartStudy. <span>“Heart Disease Prediction.”</span> <a href="https://www.kaggle.com/datasets/dileep070/heart-disease-prediction-using-logistic-regression" class="uri">https://www.kaggle.com/datasets/dileep070/heart-disease-prediction-using-logistic-regression</a>; Kaggle.
 </div>
 <div id="ref-joshi2021predicting" class="csl-entry" role="listitem">
 Joshi, Ram D, and Chandra K Dhakal. 2021. <span>“Predicting Type 2 Diabetes Using Logistic Regression and Machine Learning Approaches.”</span> <em>International Journal of Environmental Research and Public Health</em> 18 (14): 7346.
