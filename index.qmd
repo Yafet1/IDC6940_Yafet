@@ -14,7 +14,7 @@ self-contained: true
 execute: 
   warning: false
   message: false
-editor: 
+editor:  
   markdown: 
     wrap: 72
 ---
@@ -112,6 +112,12 @@ import pandas as pd
 import seaborn as sns        
 import matplotlib.pyplot as plt  
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import RFE
+from sklearn.model_selection import train_test_split
+
+
 
 df = pd.read_csv("framingham.csv")
 
@@ -297,9 +303,108 @@ plt.show()
 
 The chart above shows different health measurements and how many people with each measurement did or did not get heart disease in ten years. For every feature like age, blood pressure, heart rate, cholesterol, BMI, and glucose there are many more people who did not get heart disease than people who did. It is shown that the light purple bars for people without heart disease are much taller than the dark purple bars for people with heart disease. This tells us that heart disease cases are fewer across all these measurements.Overall, the chart shows that heart disease is less common in the dataset, no matter which feature you look at.
 
+### Modeling and Results
+
+
+#### Data Preparation
+
+
+There are seven features that contain missing values, including education, cigarettes per day, blood pressure medication status, total cholesterol, body mass index (BMI), heart rate, and glucose level. To prepare the data for modeling, these missing values were replaced using appropriate statistical methods based on the type of each variable. For categorical variables and ordinal variable such as blood pressure medication status and education level, the mode was used to replace missing values because it represents the most frequent category and helps preserve the original distribution of the data. For continuous variables such as cigarettes per day, cholesterol, BMI, heart rate, and glucose, the median was used because medical measurements often contain extreme values. The median provides a more stable and representative estimate of the typical value compared to the mean.
+
+
+```{python}
+
+df_model = pd.read_csv("framingham.csv")
+
+df_model["education"] = df_model["education"].fillna(df_model["education"].mode()[0])
+
+df_model["BPMeds"] = df_model["BPMeds"].fillna(df_model["BPMeds"].mode()[0])
+
+df_model["cigsPerDay"] = df_model["cigsPerDay"].fillna(df_model["cigsPerDay"].median())
+
+df_model["totChol"] = df_model["totChol"].fillna(df_model["totChol"].median())
+
+df_model["BMI"] = df_model["BMI"].fillna(df_model["BMI"].median())
+
+df_model["heartRate"] = df_model["heartRate"].fillna(df_model["heartRate"].median())
+
+df_model["glucose"] = df_model["glucose"].fillna(df_model["glucose"].median())
+
+#df_model.isnull().sum() # Missing values sum 
+
+```
+
+
+
+For feature selection, both correlation and RFE were used to find the most important predictors. The data was first split into 80% training data and 20% testing data, which gave 3,390 patients in the training set and 848 patients in the testing set. The predictor variables in both sets were then scaled so they would be on the same measurement scale. After that, feature selection was done on the training data. From RFE, the top five features were male, age, cigarettes per day (cigsPerDay), systolic blood pressure (sysBP), and glucose.From the correlation method, the top five features were age, systolic blood pressure (sysBP), prevalent hypertension (prevalentHyp), diastolic blood pressure (diaBP), and glucose. The final set of predictors was taken as the union of both results, which gave seven total features.
 
 
 
 
+```{python}
+X = df_model.drop("TenYearCHD", axis=1)
+y = df_model["TenYearCHD"]
+
+#Train 80%
+# Test 20 %
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+
+model = LogisticRegression(max_iter=100)
+
+rfe = RFE(model, n_features_to_select=5)
+rfe.fit(X_train_scaled, y_train);
+
+selected_features = X.columns[rfe.support_]
+
+train_df = X_train.copy()
+train_df["TenYearCHD"] = y_train  # add target column back to it 
+
+corr = train_df.corr()
+top_corr = corr["TenYearCHD"].abs().sort_values(ascending=False)
+
+
+top_corr_features = list(top_corr.index[1:6])
+rfe_features = list(selected_features)
+
+final_features = [col for col in X.columns if col in set(top_corr_features).union(set(rfe_features))]
+
+#print("Final selected features:", final_features)
+
+
+```
+
+
+
+```{python}
+
+```
+
+
+
+
+
+
+```{python}
+#print(df.columns)
+```
+
+
+
+
+```{python}
+#df["TenYearCHD"].value_counts(normalize=True)
+```
 
 
