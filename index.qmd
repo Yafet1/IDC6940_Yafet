@@ -116,6 +116,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import RFE
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score , confusion_matrix, roc_curve, auc,classification_report
 
 
 
@@ -312,8 +313,10 @@ The chart above shows different health measurements and how many people with eac
 There are seven features that contain missing values, including education, cigarettes per day, blood pressure medication status, total cholesterol, body mass index (BMI), heart rate, and glucose level. To prepare the data for modeling, these missing values were replaced using appropriate statistical methods based on the type of each variable. For categorical variables and ordinal variable such as blood pressure medication status and education level, the mode was used to replace missing values because it represents the most frequent category and helps preserve the original distribution of the data. For continuous variables such as cigarettes per day, cholesterol, BMI, heart rate, and glucose, the median was used because medical measurements often contain extreme values. The median provides a more stable and representative estimate of the typical value compared to the mean.
 
 
-```{python}
 
+
+
+```{python}
 df_model = pd.read_csv("framingham.csv")
 
 df_model["education"] = df_model["education"].fillna(df_model["education"].mode()[0])
@@ -332,16 +335,7 @@ df_model["glucose"] = df_model["glucose"].fillna(df_model["glucose"].median())
 
 #df_model.isnull().sum() # Missing values sum 
 
-```
 
-
-
-For feature selection, both correlation and RFE were used to find the most important predictors. The data was first split into 80% training data and 20% testing data, which gave 3,390 patients in the training set and 848 patients in the testing set. The predictor variables in both sets were then scaled so they would be on the same measurement scale. After that, feature selection was done on the training data. From RFE, the top five features were male, age, cigarettes per day (cigsPerDay), systolic blood pressure (sysBP), and glucose.From the correlation method, the top five features were age, systolic blood pressure (sysBP), prevalent hypertension (prevalentHyp), diastolic blood pressure (diaBP), and glucose. The final set of predictors was taken as the union of both results, which gave seven total features.
-
-
-
-
-```{python}
 X = df_model.drop("TenYearCHD", axis=1)
 y = df_model["TenYearCHD"]
 
@@ -361,7 +355,7 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 
-model = LogisticRegression(max_iter=100)
+model = LogisticRegression(class_weight='balanced')
 
 rfe = RFE(model, n_features_to_select=5)
 rfe.fit(X_train_scaled, y_train);
@@ -380,31 +374,108 @@ rfe_features = list(selected_features)
 
 final_features = [col for col in X.columns if col in set(top_corr_features).union(set(rfe_features))]
 
+
+
+plt.figure(figsize=(25,20))
+sns.heatmap(corr, annot=True, cmap='coolwarm', square=True)
+plt.title("Correlation Heatmap")
+
+
 #print("Final selected features:", final_features)
 
 
+
+
+
 ```
+
+
+
+For feature selection, both correlation and RFE were used to find the most important predictors. The data was first split into 80% training data and 20% testing data, which gave 3,390 patients in the training set and 848 patients in the testing set. The predictor variables in both sets were then scaled so they would be on the same measurement scale. After that, feature selection was done on the training data. The dataset was split into training and testing sets before feature selection to prevent data leakage. Feature selection methods such as correlation analysis and RFE were applied only on the training data to ensure that the test data remained unseen during model development. This approach provides a more realistic evaluation of model performance.From RFE, the top five features were male, age, cigarettes per day (cigsPerDay), systolic blood pressure (sysBP), and glucose.From the correlation method, the top five features were age, systolic blood pressure (sysBP), prevalent hypertension (prevalentHyp), diastolic blood pressure (diaBP), and glucose. The final set of predictors was taken as the union of both results, which gave seven total features.
+
+
+
+
+
+
+
+#### Model Training and Evaluation 
+
+After selecting the final set of predictors, the training and testing datasets were reduced to only include these selected features. The predictor variables were then scaled again so that all features are on the same measurement scale, which helps improve model performance. A logistic regression model was then trained using the training data, with class weighting applied to handle the imbalance in the dataset. The dataset is imbalanced, with 3594 patients without the disease and 644 patients with the disease.This means there are significantly more negative cases than positive cases. Because of this, the model could focus mostly on predicting the majority class and still achieve high accuracy, while failing to correctly identify patients who actually have the disease. To address this issue, class weighting was applied so that the model gives more importance to the minority class during training. This helps improve the model’s ability to detect positive cases. After training, the model was used to make predictions on the testing data.
+
+```{python}
+
+X_train_final = X_train[final_features]
+X_test_final = X_test[final_features]
+
+# scale again on selected features
+scaler = StandardScaler()
+X_train_final_scaled = scaler.fit_transform(X_train_final)
+X_test_final_scaled = scaler.transform(X_test_final)
+
+final_model = LogisticRegression(class_weight='balanced')
+final_model.fit(X_train_final_scaled, y_train);
+
+
+y_pred = final_model.predict(X_test_final_scaled)
+y_prob = final_model.predict_proba(X_test_final_scaled)[:, 1]
+
+
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+
+print(classification_report(y_test, y_pred))
+
+```
+
+The result above shows that the logistic regression model achieved an accuracy of 0.678, which means the model was correct about 68% of the time overall. However, because there are more healthy patients than sick patients, accuracy alone does not tell the full story. Precision tells us how often the model is correct when it makes a prediction. For patients without the disease (class 0), precision was 90%, meaning when the model says someone is healthy, it is correct most of the time. For patients with the disease (class 1), precision was 26%, meaning that when the model predicts someone is sick, it is correct about one out of four times. Recall tells us how well the model finds actual cases. For healthy patients, recall was 69%, meaning the model correctly finds most of the healthy people. For sick patients, recall was 59%, meaning the model is able to catch more than half of the people who actually have the disease, which is important because missing a sick patient can be serious. The F1 score combines both precision and recall into one number. For healthy patients, the F1 score was 79%, showing strong performance. For sick patients, the F1 score was 36%, which shows that while the model is good at finding sick people, it still makes some mistakes. Overall, the model does a good job identifying healthy patients and is also able to detect many disease cases, which is the main goal of this analysis.
+
+
 
 
 
 ```{python}
 
+cm = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(10,7))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+xticklabels=["Predicted No", "Predicted Yes"],
+yticklabels=["Actual No", "Actual Yes"])
+
+plt.xlabel("Predicted Label")
+plt.ylabel("Actual Label")
+plt.title("Confusion Matrix")
+plt.show()
+
+
+
 ```
 
 
+The confusion matrix above shows that the model performed well in predicting both healthy and sick patients. It correctly identified 499 patients without the disease and 76 patients with the disease, showing that it can successfully detect a large number of true cases. Although the model made some mistakes, such as predicting 220 healthy patients as having the disease and missing 53 patients who actually had the disease, these errors are expected in an imbalanced dataset. Importantly, the model is able to identify many of the disease cases, which is the main goal of this analysis. Overall, the results show that the model does a good job, especially in detecting patients with the disease while still maintaining strong performance on healthy patients.
 
 
 
 
 ```{python}
-#print(df.columns)
+
+fpr, tpr, _ = roc_curve(y_test, y_prob);
+roc_auc = auc(fpr, tpr);
+
+plt.figure(figsize=(10,7));
+plt.plot(fpr, tpr, label="AUC = " + str(round(roc_auc, 3)));
+plt.plot([0,1], [0,1], linestyle="--");
+plt.xlabel("False Positive Rate");
+plt.ylabel("True Positive Rate");
+plt.title("ROC Curve");
+plt.legend();
+plt.show()
 ```
 
 
+The ROC curve shows how well the model separates patients with and without the disease. The model achieved an AUC score of 0.701, which means it does a good job distinguishing between the two groups. An AUC above 0.7 indicates that the model is performing better than random guessing and has a good ability to correctly rank patients based on their risk. The curve stays above the diagonal line, which represents random performance, showing that the model consistently makes better predictions than chance. Overall, this result confirms that the model performs well and is able to identify positive cases while also maintaining reasonable accuracy for negative cases.
 
+### Conclusion
 
-```{python}
-#df["TenYearCHD"].value_counts(normalize=True)
-```
-
-
+This study applied logistic regression to predict the likelihood of developing heart disease using patient data, and the results show that the model performs strongly for this type of problem. The model was able to effectively identify patients with the disease while also maintaining strong performance in recognizing healthy individuals. Key evaluation metrics such as precision, recall, and F1 score demonstrate that the model achieves a good balance between correctly detecting disease cases and overall prediction performance. The confusion matrix further confirms that the model correctly classifies a large number of cases, showing its ability to make reliable predictions. In addition, the ROC curve and AUC score indicate that the model has a solid ability to distinguish between patients with and without the disease.An important aspect of these results is the impact of class imbalance in the dataset. Since there are more patients without the disease than with the disease, special attention is needed to ensure the model can still identify disease cases effectively. By applying class weighting, the model is guided to pay more attention to the smaller group of patients with the disease during training. This helps improve the model’s ability to detect these cases and shows that the model can perform well even when the data is not evenly distributed.Overall, the results highlight that logistic regression is an effective and dependable method for predicting heart disease risk. The model provides meaningful insights into patient outcomes and can support early identification of high-risk individuals, making it a valuable tool for healthcare analysis and decision-making.
