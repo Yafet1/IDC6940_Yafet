@@ -1,0 +1,714 @@
+---
+title: "Predicting Survival Outcomes Using Logistic Regression"
+#subtitle: "Summarizing Two Articles"
+author: "Yafet Mekonnen (Advisor: Dr. Cohen)"
+date: today
+format:
+  revealjs 
+course: Capstone Projects in Data Science
+bibliography: references.bib # file contains bibtex for references
+#always_allow_html: true # this allows to get PDF with HTML features
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor:  
+  markdown: 
+    wrap: 72
+---
+
+## Introduction
+
+-   Many real-world outcomes are binary (Yes/No, Sick/Healthy)
+-   Linear regression is not suitable because it can predict invalid
+    values (e.g., negative or \>1)
+-   Logistic regression is designed for binary outcomes
+-   Uses log-odds (logit function) and converts results into
+    probabilities (0–1)
+-   Widely used in healthcare to predict risk and support
+    decision-making
+
+## Evaluation Metrics
+
+-   Logistic regression uses the log-odds (logit) to transform the
+    function written as
+
+$\log\left(\frac{p}{1 - p}\right) = \beta_0 + \beta_1 X_1 + \dots + \beta_k X_k$
+
+Where:
+
+-   $p$ is the probability that the event occurs
+
+-   $\beta_0$ is the intercept
+
+-   $\beta_1, \dots, \beta_k$ are coefficients
+
+-   $X_1, \dots, X_k$ are predictor variables
+
+## Evaluation Metrics 2
+
+-   Accuracy is calculated as
+    $Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$,
+
+-   Precision is calculated as $Precision = \frac{TP}{TP + FP}$,
+
+-   Recall is calculated as $Recall = \frac{TP}{TP + FN}$,
+
+-   F1 score is calculated as
+    $F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}$.
+
+-   A confusion matrix is used to compare predicted and actual outcomes.
+
+-   The ROC curve and AUC score help measure how good the model is at
+    correctly separating the two groups.
+
+## Data Exploration
+
+-   Dataset from Kaggle (Framingham Heart Study)
+-   Long-term cardiovascular study in Framingham, Massachusetts
+-   Tracked patients over 10 years
+-   Contains 4,238 patient records & 15 features (demographic,
+    behavioral, medical)
+-   Goal is to Predict coronary heart disease (CHD),Analyze how risk
+    factors affect heart disease over time
+-   Each feature represents a potential risk factor
+-   Helps model understand patient health patterns
+
+## Table: Description of Features
+
+```{r}
+library(readr)
+library(dplyr)
+library(gt)
+
+df <- read_csv("framingham.csv",show_col_types = FALSE)
+
+
+variables <- colnames(df)
+
+
+table <- data.frame(
+  Variable = variables,
+  Description = c(
+    "Sex of the participant, (1 = male, 0 = female).",
+    "Age of the participant.",
+    "Education level (1 = some high school, 2 = high school graduate or GED, 3 = some college, 4 = college graduate).",
+    "Indicates whether or not the patient is a current smoker.",
+    "Average number of cigarettes smoked per day.",
+    "Whether the participant is taking medication for blood pressure.",
+    "Whether the participant has ever experienced a stroke.",
+    " whether or not the patient was hypertensive.",
+    "Whether the participant has been diagnosed with diabetes.",
+    "Cholesterol level of the participant.",
+    "Systolic blood pressure.",
+    "Diastolic blood pressure.",
+    "Body Mass Index (BMI).",
+    "Heart rate of the participant.",
+    "Glucose level.",
+    "Outcome variable indicating whether the participant developed coronary heart disease (CHD) within 10 years (1 = Yes, 0 = No)."
+  )
+)
+
+table %>%
+  gt() 
+#%>%
+ # tab_header(
+  #  title = "Table: Description of Variables ") 
+```
+
+## Heart Disease Outcomes
+
+```{python}
+#| fig-width: 10
+#| fig-height: 10
+#| fig-align: center
+#| out-width: 100%
+
+import pandas as pd
+import seaborn as sns        
+import matplotlib.pyplot as plt  
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import RFE
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score , confusion_matrix, roc_curve, auc,classification_report
+
+
+df = pd.read_csv("framingham.csv")
+
+
+counts = df['TenYearCHD'].value_counts().sort_index()
+
+
+total = counts.sum()
+labels = ["No (0)", "Yes (1)"]
+
+pct = counts / total * 100
+labels_with_values = [f"{l}\n{c} ({p:.1f}%)" for l, c, p in zip(labels, counts, pct)]
+
+plt.figure(figsize=(14, 14), dpi=200)
+
+plt.pie(
+    counts.values,
+    labels=labels_with_values,
+    startangle=90,
+    colors=sns.color_palette("Reds"),
+    textprops={'fontsize': 40},   
+    labeldistance=1.1             
+
+);
+#plt.title(
+#("Ten Year Heart Disease Outcomes"),
+ #  fontsize=40,                  
+  #  pad=20
+#)
+plt.tight_layout()
+plt.show()
+
+
+```
+
+## Outcomes for Binary Features
+
+```{python}
+
+df["BPMeds"] = pd.to_numeric(df["BPMeds"], errors="coerce")
+df = df.dropna(subset=["BPMeds"]).copy()
+df["BPMeds"] = df["BPMeds"].astype(int)
+
+df["sex"] = df["male"].astype(int)
+df["sex_label"] = df["sex"].map({1: "Male", 0: "Female"})
+
+binary_features = [
+    "sex",
+    "currentSmoker",
+    "BPMeds",
+    "prevalentStroke",
+    "prevalentHyp",
+    "diabetes"
+]
+
+target = "TenYearCHD"
+
+subplot_titles = {
+    "sex": "Sex",
+    "currentSmoker": "Current Smoker",
+    "BPMeds": "Blood Pressure",
+    "prevalentStroke": "Prevalent Stroke",
+    "prevalentHyp": "Hypertension",
+    "diabetes": "Diabetes"
+}
+
+label_map = {
+    "sex": {0: "Female", 1: "Male"},
+    "default": {0: "No", 1: "Yes"}
+}
+
+df[target] = pd.to_numeric(df[target], errors="coerce").astype("Int64")
+
+sns.set_theme(
+    style="whitegrid",
+    context="talk",
+    font_scale=1.4
+)
+
+fig, axes = plt.subplots(2, 3, figsize=(36, 24), dpi=200)
+axes = axes.flatten()
+
+for ax, col in zip(axes, binary_features):
+    sub = df[[col, target]].dropna()
+
+    sns.countplot(
+        data=sub,
+        x=col,
+        hue=target,
+        order=[0, 1],
+        hue_order=[0, 1],
+        palette="Blues",
+        ax=ax
+    )
+
+    #ax.set_title(subplot_titles[col], fontsize=40)
+    ax.set_title(
+    subplot_titles[col],
+    fontsize=41
+    #fontweight="bold",
+)
+
+    ax.set_xlabel("")
+    ax.set_ylabel("Count", fontsize=38)
+    ax.tick_params(axis="both", labelsize=38)
+
+    if col == "sex":
+        ax.set_xticks([0, 1], ["Female", "Male"])
+    else:
+        ax.set_xticks([0, 1], ["No", "Yes"])
+
+    heights = [p.get_height() for p in ax.patches if p.get_height() > 0]
+    max_h = max(heights) if heights else 1
+
+    for p in ax.patches:
+        h = p.get_height()
+        if h > 0:
+            ax.text(
+                p.get_x() + p.get_width() / 2,
+                h + 0.02 * max_h,
+                f"{int(h)}",
+                ha="center",
+                va="bottom",
+                fontsize=38
+            )
+
+for i, ax in enumerate(axes):
+    leg = ax.legend(
+        title=target,
+        fontsize=49,
+        title_fontsize=49,
+        loc="upper right"
+
+    )
+    if i != len(binary_features) - 1:
+        ax.legend_.remove()
+
+#fig.suptitle(
+ #   "Count of Ten Year Heart Disease Outcomes for Binary Features",
+  #  fontsize=70,
+  #  y=0.98
+#)
+
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.show()
+
+```
+
+## Outcomes for Continuous Features
+
+```{python}
+
+
+continuous_features = [
+    "age", "education", "cigsPerDay", "totChol", "sysBP",
+    "diaBP", "BMI", "heartRate", "glucose"
+]
+target = "TenYearCHD"
+
+subplot_titles = {
+    "age": "Age (years)",
+    "education": "Education (1–4 levels)",
+    "cigsPerDay": "Cigarettes per Day",
+    "totChol": "Total Cholesterol (mg/dL)",
+    "sysBP": "Systolic Blood Pressure (mmHg)",
+    "diaBP": "Diastolic Blood Pressure (mmHg)",
+    "BMI": "Body Mass Index (kg/m²)",
+    "heartRate": "Resting Heart Rate (bpm)",
+    "glucose": "Glucose (mg/dL)"
+}
+
+df[target] = pd.to_numeric(df[target], errors="coerce").astype("Int64")
+
+sns.set_theme(style="whitegrid", context="talk")
+
+ncols = 3
+nrows = int(np.ceil(len(continuous_features) / ncols))
+fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(11, 7))
+axes = axes.flatten()
+
+last_plot_index = len(continuous_features) - 1
+
+for i, (ax, col) in enumerate(zip(axes, continuous_features)):
+    sub = df[[col, target]].dropna(subset=[col, target]).copy()
+
+    if sub.empty:
+        ax.text(0.5, 0.5, f"No data for '{col}'", ha="center", va="center", fontsize=12)
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xlabel(""); ax.set_ylabel("")
+        continue
+
+    g = sns.histplot(
+        data=sub,
+        x=col,
+        hue=target,
+        bins="auto",
+        kde=False,
+        multiple="layer", 
+        palette="Purples",
+        alpha=0.6,
+        edgecolor="white",
+        ax=ax,
+        legend = False
+    )
+
+    ax.set_xlabel(subplot_titles.get(col, col), fontsize=12)
+    ax.set_ylabel("Count", fontsize=12)
+    ax.tick_params(axis="both", labelsize=12)
+
+    #leg = ax.legend_
+    #if i != last_plot_index and leg is not None:
+     #   ax.legend_.remove()
+ 
+if i == last_plot_index:
+    handles = [
+        plt.Line2D([0], [0], color=sns.color_palette("Purples")[1], lw=8, label="0"),
+        plt.Line2D([0], [0], color=sns.color_palette("Purples")[3], lw=8, label="1")
+    ]
+
+    ax.legend(
+        handles=handles,
+        title="TenYearCHD",
+        fontsize=10,
+        title_fontsize=11,
+        loc="upper right",   # ✅ stays inside but not hiding
+        frameon=True
+    )
+
+
+
+
+
+
+for j in range(len(continuous_features), nrows * ncols):
+    axes[j].axis("off")
+
+#fig.suptitle("Count of Ten Year Heart Disease Outcomes for Continuous Features", fontsize=30, y=1)
+
+plt.tight_layout(rect=[0, 0, 1, 1])
+fig.subplots_adjust(top=1, hspace=0.35, wspace=0.30)
+plt.show()
+
+```
+
+## Data Preparation
+
+-   Missing values were replaced using the mode and median.
+
+-   The mode was used for categorical and ordinal variables to preserve
+    the most frequent categories and maintain the original distribution.
+
+-   The median was used for continuous medical variables to reduce the
+    impact of outliers.
+
+-   The data was split into 80% training and 20% testing before feature
+    selection to prevent data leakage.
+
+-   All predictors were scaled for consistent measurement ranges.
+
+## Data Preparation 2
+
+-   Feature selection was performed only on the training data to keep
+    the test set unseen during model development.
+
+-   Correlation analysis was used to identify features with strong
+    linear relationships to the outcome.
+
+-   Recursive Feature Elimination (RFE) was used to identify features
+    that most improved model performance.
+
+-   Using both methods helped capture complementary aspects of feature
+    importance.
+
+-   The final predictor set was formed by combining the top features
+    from both methods resulted in seven selected features
+
+## Correlation Heatmap
+
+```{python}
+df_model = pd.read_csv("framingham.csv")
+
+
+df_model["education"] = df_model["education"].fillna(df_model["education"].mode()[0])
+
+df_model["BPMeds"] = df_model["BPMeds"].fillna(df_model["BPMeds"].mode()[0])
+
+df_model["cigsPerDay"] = df_model["cigsPerDay"].fillna(df_model["cigsPerDay"].median())
+
+df_model["totChol"] = df_model["totChol"].fillna(df_model["totChol"].median())
+
+df_model["BMI"] = df_model["BMI"].fillna(df_model["BMI"].median())
+
+df_model["heartRate"] = df_model["heartRate"].fillna(df_model["heartRate"].median())
+
+df_model["glucose"] = df_model["glucose"].fillna(df_model["glucose"].median())
+
+#df_model.isnull().sum() # Missing values sum 
+
+
+X = df_model.drop("TenYearCHD", axis=1)
+y = df_model["TenYearCHD"]
+
+#Train 80%
+# Test 20 %
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+
+model = LogisticRegression(class_weight='balanced')
+
+rfe = RFE(model, n_features_to_select=5)
+rfe.fit(X_train_scaled, y_train);
+
+selected_features = X.columns[rfe.support_]
+
+train_df = X_train.copy()
+train_df["TenYearCHD"] = y_train  
+
+corr = train_df.corr()
+top_corr = corr["TenYearCHD"].abs().sort_values(ascending=False)
+
+
+top_corr_features = list(top_corr.index[1:6])
+rfe_features = list(selected_features)
+
+final_features = [col for col in X.columns if col in set(top_corr_features).union(set(rfe_features))]
+
+
+
+
+plt.figure(figsize=(85, 60))
+ax=sns.heatmap(
+    corr,
+    annot=True,
+    fmt=".2f",                 
+    cmap="coolwarm",
+    square=True,
+    annot_kws={"size": 58}     
+)
+#plt.title("Correlation Heatmap", fontsize=40)
+
+ax.set_yticklabels(ax.get_yticklabels(), fontsize=35)
+ax.set_xticklabels(ax.get_xticklabels(), fontsize=35)
+
+cbar = ax.collections[0].colorbar
+cbar.ax.tick_params(labelsize=60)
+
+
+plt.tight_layout()
+plt.show()
+
+
+
+#print("Final selected features:", final_features)
+
+
+
+
+
+```
+
+## Model Training and Evaluation
+
+-   After feature selection, the training and testing datasets were
+    reduced to include only the selected predictors.
+
+-   The dataset was imbalanced, with 3,594 patients without disease and
+    644 patients with disease.
+
+-   This imbalance could cause the model to favor predicting the
+    majority (negative) class.
+
+-   Class weighting was applied to give more importance to the minority
+    (positive) class during training.
+
+-   The trained model was then used to make predictions on the testing
+    data.
+
+## Modeling and Results
+
+```{python}
+
+X_train_final = X_train[final_features]
+X_test_final = X_test[final_features]
+
+# scale again on selected features
+scaler = StandardScaler()
+X_train_final_scaled = scaler.fit_transform(X_train_final)
+X_test_final_scaled = scaler.transform(X_test_final)
+
+final_model = LogisticRegression(class_weight='balanced')
+final_model.fit(X_train_final_scaled, y_train);
+
+
+y_pred = final_model.predict(X_test_final_scaled)
+y_prob = final_model.predict_proba(X_test_final_scaled)[:, 1]
+
+
+# Get accuracy
+acc = accuracy_score(y_test, y_pred)
+
+# Get report as dictionary
+report = classification_report(y_test, y_pred, output_dict=True)
+
+
+print("Accuracy:", accuracy_score(y_test, y_pred)*100)
+
+#(classification_report(y_test, y_pred)
+
+print( 
+  f"Class 0 (Healthy): "
+    f"Precision {report['0']['precision']:.2f} | "
+    f"Recall {report['0']['recall']:.2f} | "
+    f"F1 {report['0']['f1-score']:.2f}"
+)
+
+print(
+    f"Class 1 (Disease): "
+    f"Precision {report['1']['precision']:.2f} | "
+    f"Recall {report['1']['recall']:.2f} | "
+    f"F1 {report['1']['f1-score']:.2f}"
+)
+
+
+
+```
+
+-   The model achieved 67.8% accuracy, though accuracy is limited by
+    class imbalance.
+-   Precision was high for healthy patients (90%) and low for sick
+    patients (26%).
+-   Recall was 69% for healthy patients and 59% for sick patients,
+    indicating good disease detection.
+-   The F1 score was strong for healthy patients (79%) and moderate for
+    sick patients (36%).
+
+## Confusion Matrix
+
+```{python}
+
+cm = confusion_matrix(y_test, y_pred)
+
+fig, axes = plt.subplots(1, 2, figsize=(28, 10))
+
+sns.heatmap(
+    cm,
+    annot=True,
+    fmt="d",
+    cmap="Blues",
+    xticklabels=["Predicted No", "Predicted Yes"],
+    yticklabels=["Actual No", "Actual Yes"],
+    ax=axes[0],
+    cbar=False,
+    annot_kws={"size": 28}   
+)
+
+axes[0].set_xlabel("Predicted Label", fontsize=30)
+axes[0].set_ylabel("Actual Label", fontsize=30)
+axes[0].tick_params(labelsize=30)
+
+_ = axes[1].axis("off")
+_ = axes[1].text(
+    0,
+    0.9,
+    "• Correctly identified 499 healthy\n"
+    "  and 76 diseased patients\n\n"
+    "• Errors included 220 false positives\n"
+    "  and 53 false negatives\n\n"
+    "• Despite imbalance, the model\n"
+    "  detects many disease cases\n\n"
+    "• Strong performance for healthy\n"
+    "  patients with good disease detection",
+    fontsize=50,
+    va="top"
+)
+
+plt.tight_layout()
+plt.show();
+
+```
+
+## ROC Curve
+
+```{python}
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+
+# Compute ROC
+fpr, tpr, _ = roc_curve(y_test, y_prob)
+roc_auc = auc(fpr, tpr)
+
+# Create figure
+fig, axes = plt.subplots(
+    1, 2,
+    figsize=(30, 12),
+    gridspec_kw={"width_ratios": [1.4, 1]}
+)
+
+_ = axes[0].plot(fpr, tpr, lw=4, label=f"AUC = {roc_auc:.3f}")
+_ = axes[0].plot([0, 1], [0, 1], linestyle="--", lw=3)
+_ = axes[0].set_xlabel("False Positive Rate", fontsize=26)
+_ = axes[0].set_ylabel("True Positive Rate", fontsize=26)
+_ = axes[0].tick_params(labelsize=22)
+_ = axes[0].legend(fontsize=22, loc="lower right")
+_ = axes[0].set_title("ROC Curve", fontsize=30, pad=15)
+
+_ = axes[1].axis("off")
+_ = axes[1].text(
+    0,
+    0.9,
+  "• The ROC curve shows how well the \n"
+" model distinguishes between cases\n\n"
+"• The model achieved an AUC of 0.701,\n"
+"  indicating good discriminatory performance\n\n"
+"• The model performs well for both positive and \n"
+"negative outcomes\n",
+    fontsize=50,
+    va="top"
+)
+
+plt.tight_layout()
+plt.show()
+
+```
+
+## Conclusion
+
+- Logistic regression was used to predict heart disease risk and showed strong overall performance.
+- The model effectively distinguished between patients with and without heart disease.
+- Precision, recall, and F1 score indicate a good balance between disease detection and accuracy.
+- ROC curve and AUC confirm solid discriminative ability.
+- Class weighting helped address class imbalance, improving detection of disease cases.
+
+## **References**
+
+-   Bewick, Viv, Liz Cheek, and Jonathan Ball. 2005. “Statistics Review
+    14: Logistic Regression.” *Critical Care* 9 (1): 112–18.
+    <https://doi.org/10.1186/cc3045>.
+
+-   Dayton, C Mitchell. 1992. “Logistic Regression Analysis.” *Stat*
+    474: 574.
+
+-   FraminghamHeartStudy. “Heart Disease Prediction.”
+    <https://www.kaggle.com/datasets/dileep070/heart-disease-prediction-using-logistic-regression>;
+    Kaggle.
+
+-   Joshi, Ram D, and Chandra K Dhakal. 2021. “Predicting Type 2
+    Diabetes Using Logistic Regression and Machine Learning Approaches.”
+    *International Journal of Environmental Research and Public Health*
+    18 (14): 7346.
+
+-   Shipe, Maren E, Stephen A Deppen, Farhood Farjah, and Eric L
+    Grogan. 2019. “Developing Prediction Models for Clinical Use Using
+    Logistic Regression: An Overview.” *Journal of Thoracic Disease* 11
+    (Suppl 4): S574.
+
+-   Stoltzfus, Jill C. 2011. “Logistic Regression: A Brief Primer.”
+    *Academic Emergency Medicine* 18 (10): 1099–1104.
+    <https://doi.org/10.1111/j.1553-2712.2011.01185.x>.
+
+-   Tripepi, Giovanni, KJ Jager, FW Dekker, and Carmine Zoccali. 2008.
+    “Linear and Logistic Regression Analysis.” *Kidney International* 73
+    (7): 806–10.
+
+-   Wang, Haolin, and Aruni Jayathilaka. 2024. “Exploring Predictive
+    Factors for Heart Disease: A Comprehensive Analysis Using Logistic
+    Regression.” *University of Rochester Journal of Undergraduate
+    Research* 23 (1). <https://doi.org/10.47761/YRCU1073>.
